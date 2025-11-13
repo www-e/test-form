@@ -7,12 +7,10 @@ for (let i = 1; i <= 6; i++) {
     navItem.className = 'nav-item';
     
     navItem.innerHTML = `
-        <button onclick="selectPage(${i})">
+        <button onclick="toggleSelection(this, ${i})">
             <span class="nav-text">Page ${i}</span>
-            <div class="icon-wrapper">
-                <span class="check-icon"></span>
-                <span class="nav-icon"></span>
-                <span class="icon-bg"></span>
+            <div class="checkbox">
+                <span class="checkmark"></span>
             </div>
         </button>
     `;
@@ -20,47 +18,93 @@ for (let i = 1; i <= 6; i++) {
     navList.appendChild(navItem);
 }
 
-// Handle page selection
+// Handle page selection with toggle functionality
 let selectedPage = null;
 
-function selectPage(pageNumber) {
-    // Remove previous selection
-    document.querySelectorAll('.nav-item button').forEach(btn => {
-        btn.style.background = 'none';
-        btn.querySelector('.check-icon').classList.remove('show');
-    });
+function toggleSelection(button, pageNumber) {
+    const navItem = button.closest('.nav-item');
     
-    // Highlight selected page and show blue check
-    const button = event.target.closest('.nav-item').querySelector('button');
-    button.style.background = '#f8f8f8';
-    button.querySelector('.check-icon').classList.add('show');
-    selectedPage = pageNumber;
+    // If clicking the same item, deselect it
+    if (selectedPage === pageNumber) {
+        navItem.classList.remove('selected');
+        selectedPage = null;
+    } else {
+        // Remove previous selection
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.classList.remove('selected');
+        });
+        
+        // Add selection to clicked item
+        navItem.classList.add('selected');
+        selectedPage = pageNumber;
+    }
+    
+    // Add ripple effect
+    button.style.transform = 'scale(0.98)';
+    setTimeout(() => {
+        button.style.transform = 'scale(1)';
+    }, 150);
 }
 
-// Create notification element
-function showNotification() {
-    const notification = document.createElement('div');
-    notification.className = 'notification';
-    notification.textContent = 'You have pressed done!';
-    document.body.appendChild(notification);
+// Create toast notification
+function showToast(message) {
+    // Remove existing toast
+    const existingToast = document.querySelector('.toast');
+    if (existingToast) {
+        existingToast.remove();
+    }
     
-    // Trigger animation
+    // Create new toast
+    const toast = document.createElement('div');
+    toast.className = 'toast';
+    toast.textContent = message;
+    
+    // Add to page
+    document.body.appendChild(toast);
+    
+    // Show with animation
     setTimeout(() => {
-        notification.classList.add('show');
+        toast.classList.add('show');
     }, 100);
     
-    // Remove after animation
+    // Auto hide after 2.5 seconds
     setTimeout(() => {
-        document.body.removeChild(notification);
-    }, 3100);
+        toast.classList.remove('show');
+        setTimeout(() => {
+            if (toast.parentNode) {
+                toast.remove();
+            }
+        }, 300);
+    }, 2500);
 }
 
-// Handle done button
-document.querySelector('.action-btn').addEventListener('click', () => {
-    if (selectedPage) {
-        console.log(`Action completed for page ${selectedPage}`);
-        showNotification();
-    } else {
-        alert('Please select a page first');
-    }
+// Enhanced done button interaction
+document.addEventListener('DOMContentLoaded', () => {
+    const doneButton = document.querySelector('.action-btn');
+    
+    doneButton.addEventListener('click', () => {
+        // Button press animation
+        doneButton.style.transform = 'translateY(0) scale(0.98)';
+        
+        setTimeout(() => {
+            doneButton.style.transform = 'translateY(0) scale(1)';
+        }, 150);
+        
+        // Show appropriate message
+        if (selectedPage) {
+            showToast('You have pressed done!');
+            console.log(`Action completed for page ${selectedPage}`);
+        } else {
+            showToast('Please select a page first');
+        }
+    });
+    
+    // Add hover effects
+    doneButton.addEventListener('mouseenter', () => {
+        doneButton.style.transform = 'translateY(-2px)';
+    });
+    
+    doneButton.addEventListener('mouseleave', () => {
+        doneButton.style.transform = 'translateY(0)';
+    });
 });
